@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>随身书架</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="随身书架">
+<meta name="theme-color" content="#F7F3EA">
+<link rel="manifest" href="./manifest.webmanifest">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="icon" href="./favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="./css/base.css">
+<link rel="stylesheet" href="./css/app.css">
+<link rel="stylesheet" href="./css/reader.css">
+</head>
+<body>
+<div id="app">
+
+  <!-- 书架 -->
+  <main id="screen-shelf" class="screen active">
+    <header class="shelf-header safe-top">
+      <h1>随身书架</h1>
+      <button class="icon-btn" id="btn-to-settings" aria-label="设置">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.01a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55h.01a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.01a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1Z"/></svg>
+      </button>
+    </header>
+    <div id="shelf-empty" class="shelf-empty" hidden>
+      <div class="empty-icon">📖</div>
+      <h2>书架还是空的</h2>
+      <p>点击右下角「导入书籍」,从「文件」App 选择一本 .epub 电子书开始阅读。</p>
+      <p>建议先去「设置」填入 DeepSeek 密钥,阅读时就能随时向 AI 提问。</p>
+    </div>
+    <div id="book-grid"></div>
+    <button class="fab" id="btn-import">＋ 导入书籍</button>
+  </main>
+
+  <!-- 阅读器 -->
+  <main id="screen-reader" class="screen">
+    <header class="reader-top">
+      <button class="icon-btn" id="btn-reader-back" aria-label="返回">←</button>
+      <div class="reader-title" id="reader-title"></div>
+      <button class="icon-btn" id="btn-reader-ai" aria-label="问 AI">✦</button>
+      <button class="icon-btn" id="btn-reader-toc" aria-label="目录">☰</button>
+    </header>
+    <div id="reader-viewport"></div>
+    <footer class="reader-bottom">
+      <button class="ch-btn" id="btn-prev-ch">上一章</button>
+      <div class="progress-wrap">
+        <div class="progress-bar"><i id="progress-fill" style="width:0%"></i></div>
+        <div class="progress-text" id="progress-text">0%</div>
+      </div>
+      <button class="ch-btn" id="btn-next-ch">下一章</button>
+      <button class="aa-btn" id="btn-reader-aa">Aa</button>
+    </footer>
+  </main>
+
+  <!-- 设置 -->
+  <main id="screen-settings" class="screen">
+    <header class="shelf-header safe-top">
+      <h1>设置</h1>
+    </header>
+    <div class="settings-body">
+      <section class="settings-group">
+        <h3>DeepSeek AI</h3>
+        <div class="setting-row">
+          <label for="input-key">API 密钥</label>
+          <input type="password" id="input-key" placeholder="sk-..." autocomplete="off" autocapitalize="off" spellcheck="false">
+        </div>
+        <div class="setting-row">
+          <label>连接测试</label>
+          <button class="link-btn" id="btn-test-key">测试连接</button>
+        </div>
+        <p class="hint">密钥只保存在你自己的手机浏览器里,不会上传到任何服务器。可在 platform.deepseek.com 申请与管理。</p>
+      </section>
+      <section class="settings-group">
+        <h3>数据备份</h3>
+        <div class="setting-actions">
+          <button class="primary-btn" id="btn-export-file">导出备份文件</button>
+          <button class="primary-btn" id="btn-export-clip">复制到剪贴板</button>
+          <button class="primary-btn" id="btn-import-file">从备份文件恢复</button>
+          <button class="primary-btn" id="btn-import-clip">从剪贴板恢复</button>
+        </div>
+        <p class="hint">备份包含高亮、AI 对话与设置(不含书文件本身)。恢复后重新导入同名书籍,即可自动关联原有高亮与对话。建议把网页「添加到主屏幕」后再使用,数据更安全。</p>
+      </section>
+      <section class="settings-group">
+        <h3>关于</h3>
+        <div class="setting-row">
+          <label>版本</label>
+          <span id="app-version" style="color:var(--fg-dim)"></span>
+        </div>
+        <p class="hint">更新方式:开发者推送新版本后,在 iPhone 上完全关闭本应用再重新打开即可。</p>
+      </section>
+    </div>
+  </main>
+
+  <!-- AI 聊天面板(全局覆盖层) -->
+  <div class="chat-panel" id="chat-panel">
+    <header class="chat-header">
+      <button class="icon-btn" id="btn-chat-close" aria-label="关闭">✕</button>
+      <div class="chat-title">
+        <div class="t1" id="chat-book-title"></div>
+        <div class="t2" id="chat-chapter"></div>
+      </div>
+      <button class="icon-btn" id="btn-chat-history" aria-label="历史对话">🕘</button>
+      <button class="icon-btn" id="btn-chat-new" aria-label="新对话">＋</button>
+    </header>
+    <div class="chat-messages" id="chat-messages"></div>
+    <div class="chat-input-bar">
+      <textarea id="chat-input" rows="1" placeholder="针对书中内容提问…" enterkeyhint="send"></textarea>
+      <button class="send-btn" id="btn-chat-send" aria-label="发送">➤</button>
+    </div>
+  </div>
+
+  <!-- 底栏 -->
+  <nav id="tabbar">
+    <button class="tab active" data-route="#/shelf">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19V5a2 2 0 0 1 2-2h13v16H6a2 2 0 0 0-2 2Z"/><path d="M4 19a2 2 0 0 1 2-2h13"/></svg>
+      书架
+    </button>
+    <button class="tab" data-route="#/settings">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .34 1.87l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.7 1.7 0 0 0-1.87-.34 1.7 1.7 0 0 0-1 1.55V21a2 2 0 1 1-4 0v-.09a1.7 1.7 0 0 0-1-1.55 1.7 1.7 0 0 0-1.87.34l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.7 1.7 0 0 0 .34-1.87 1.7 1.7 0 0 0-1.55-1H3a2 2 0 1 1 0-4h.09a1.7 1.7 0 0 0 1.55-1 1.7 1.7 0 0 0-.34-1.87l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.7 1.7 0 0 0 1.87.34h.01a1.7 1.7 0 0 0 1-1.55V3a2 2 0 1 1 4 0v.09a1.7 1.7 0 0 0 1 1.55h.01a1.7 1.7 0 0 0 1.87-.34l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.7 1.7 0 0 0-.34 1.87v.01a1.7 1.7 0 0 0 1.55 1H21a2 2 0 1 1 0 4h-.09a1.7 1.7 0 0 0-1.55 1Z"/></svg>
+      设置
+    </button>
+  </nav>
+
+  <input type="file" id="import-input" accept=".epub,application/epub+zip" hidden>
+  <input type="file" id="backup-input" accept=".json,application/json" hidden>
+  <div id="sheet-root"></div>
+  <div id="toast-root"></div>
+</div>
+
+<script src="./vendor/jszip.min.js"></script>
+<script src="./vendor/epub.min.js"></script>
+<script type="module" src="./js/main.js"></script>
+</body>
+</html>
