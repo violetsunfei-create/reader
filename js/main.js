@@ -1,7 +1,7 @@
 // 入口:hash 路由、屏幕切换、全局事件、首次引导
 import { initShelf, refreshShelf } from './shelf/shelf.js';
 import { ReaderController } from './reader/reader.js';
-import { initChat } from './ai/chat-ui.js';
+import { initChat, openChat } from './ai/chat-ui.js';
 import { initSettings } from './settings/screen.js';
 import { getAll, update } from './storage/settings.js';
 import { db } from './storage/db.js';
@@ -48,6 +48,11 @@ function updateTabs() {
   document.querySelectorAll('#tabbar .tab').forEach((t) => {
     t.classList.toggle('active', h.startsWith(t.dataset.route));
   });
+  const anyActive = Array.prototype.some.call(
+    document.querySelectorAll('#tabbar .tab'),
+    (t) => t.classList.contains('active')
+  );
+  if (!anyActive) document.querySelector('#tabbar .tab[data-route="#/shelf"]').classList.add('active');
 }
 
 function route() {
@@ -57,6 +62,19 @@ function route() {
     if (reader && reader.rec.id === id) return;
     disposeReader();
     openReader(id);
+  } else if (hash.startsWith('#/ask')) {
+    // 外部文字入口:Apple 图书等 App 选中文字 → 快捷指令 → 打开本应用提问
+    disposeReader();
+    showScreen('shelf');
+    refreshShelf();
+    const qi = hash.indexOf('?');
+    const params = new URLSearchParams(qi >= 0 ? hash.slice(qi + 1) : '');
+    const q = (params.get('q') || '').trim().slice(0, 2000);
+    if (q) {
+      openChat({ bookId: 'external', bookTitle: '外部引用内容', chapter: '', quote: q, paragraph: '' });
+    } else {
+      showToast('没有收到选中的文字');
+    }
   } else if (hash === '#/settings') {
     disposeReader();
     showScreen('settings');
