@@ -130,9 +130,12 @@ async function send() {
     if (paragraph) content += '\n【所在段落】' + paragraph;
   }
 
-  const system = '你是「随身书架」的阅读助手,正在与我讨论《' + (ctx.bookTitle || '这本书') + '》。' +
-    (chapter ? '我目前阅读的章节是「' + chapter + '」。' : '') +
-    '请优先依据我提供的书中原文回答;若书中内容不足以回答,请如实说明。请用简体中文,回答简洁清晰。';
+  const system = ctx.bookId === 'external'
+    ? '你是「随身书架」的阅读助手。用户从其他应用(如 Apple 图书)选中了一段文字来向你提问。' +
+      '请优先依据用户提供的引用内容回答;若内容不足以回答,请如实说明。请用简体中文,回答简洁清晰。'
+    : '你是「随身书架」的阅读助手,正在与我讨论《' + (ctx.bookTitle || '这本书') + '》。' +
+      (chapter ? '我目前阅读的章节是「' + chapter + '」。' : '') +
+      '请优先依据我提供的书中原文回答;若书中内容不足以回答,请如实说明。请用简体中文,回答简洁清晰。';
 
   await db.put('messages', newMessage(conv.id, ctx.bookId, 'user', question, { quoteText: quote || undefined, chapter }));
   appendBubble('user', question, quote);
